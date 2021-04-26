@@ -3518,8 +3518,8 @@ function run() {
             const client = new github_1.GitHub(core.getInput('token', { required: true }));
             const format = core.getInput('format', { required: true });
             // Ensure that the format parameter is set properly.
-            if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
-                core.setFailed(`Format must be one of 'string-delimited', 'csv', or 'json', got '${format}'.`);
+            if (format !== 'json') {
+                core.setFailed(`Format must be 'json', got '${format}'.`);
             }
             // Debug log the payload.
             core.debug(`Payload keys: ${Object.keys(github_1.context.payload)}`);
@@ -3575,12 +3575,6 @@ function run() {
             const all = [], added = [], modified = [], removed = [], renamed = [], addedModified = [];
             for (const file of files) {
                 const filename = file.filename;
-                // If we're using the 'space-delimited' format and any of the filenames have a space in them,
-                // then fail the step.
-                if (format === 'space-delimited' && filename.includes(' ')) {
-                    core.setFailed(`One of your files includes a space. Consider using a different output format or removing spaces from your filenames. ` +
-                        "Please submit an issue on this action's GitHub repo.");
-                }
                 all.push(filename);
                 switch (file.status) {
                     case 'added':
@@ -3595,7 +3589,11 @@ function run() {
                         removed.push(filename);
                         break;
                     case 'renamed':
-                        renamed.push(filename);
+                        renamed.push({
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            previousName: file.previous_filename,
+                            currentName: filename
+                        });
                         break;
                     default:
                         core.setFailed(`One of your files includes an unsupported file status '${file.status}', expected 'added', 'modified', 'removed', or 'renamed'.`);
@@ -3604,27 +3602,6 @@ function run() {
             // Format the arrays of changed files.
             let allFormatted, addedFormatted, modifiedFormatted, removedFormatted, renamedFormatted, addedModifiedFormatted;
             switch (format) {
-                case 'space-delimited':
-                    // If any of the filenames have a space in them, then fail the step.
-                    for (const file of all) {
-                        if (file.includes(' '))
-                            core.setFailed(`One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`);
-                    }
-                    allFormatted = all.join(' ');
-                    addedFormatted = added.join(' ');
-                    modifiedFormatted = modified.join(' ');
-                    removedFormatted = removed.join(' ');
-                    renamedFormatted = renamed.join(' ');
-                    addedModifiedFormatted = addedModified.join(' ');
-                    break;
-                case 'csv':
-                    allFormatted = all.join(',');
-                    addedFormatted = added.join(',');
-                    modifiedFormatted = modified.join(',');
-                    removedFormatted = removed.join(',');
-                    renamedFormatted = renamed.join(',');
-                    addedModifiedFormatted = addedModified.join(',');
-                    break;
                 case 'json':
                     allFormatted = JSON.stringify(all);
                     addedFormatted = JSON.stringify(added);

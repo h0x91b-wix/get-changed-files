@@ -1,9 +1,9 @@
 name: Get All Changed Files
 description: Get all of the files changed/modified in a pull request or push's commits.
-author: Jitterbit, Inc.
+author: h0x91b (forked from Jitterbit, Inc.)
 branding:
   icon: file
-  color: purple
+  color: yellow
 runs:
   using: node12
   main: dist/index.js
@@ -17,9 +17,9 @@ inputs:
   format:
     description: >
       Format of the steps output context.
-      Can be 'space-delimited', 'csv', or 'json'.
+      Can be 'json'.
     required: true
-    default: space-delimited
+    default: json
 outputs:
   all:
     description: >

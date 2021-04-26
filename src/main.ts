@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import {context, GitHub} from '@actions/github'
 
-type Format = 'space-delimited' | 'csv' | 'json'
+type Format = 'json'
 type FileStatus = 'added' | 'modified' | 'removed' | 'renamed'
 
 async function run(): Promise<void> {
@@ -11,8 +11,8 @@ async function run(): Promise<void> {
     const format = core.getInput('format', {required: true}) as Format
 
     // Ensure that the format parameter is set properly.
-    if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
-      core.setFailed(`Format must be one of 'string-delimited', 'csv', or 'json', got '${format}'.`)
+    if (format !== 'json') {
+      core.setFailed(`Format must be 'json', got '${format}'.`)
     }
 
     // Debug log the payload.
@@ -88,18 +88,10 @@ async function run(): Promise<void> {
       added = [] as string[],
       modified = [] as string[],
       removed = [] as string[],
-      renamed = [] as string[],
+      renamed = [] as object[],
       addedModified = [] as string[]
     for (const file of files) {
       const filename = file.filename
-      // If we're using the 'space-delimited' format and any of the filenames have a space in them,
-      // then fail the step.
-      if (format === 'space-delimited' && filename.includes(' ')) {
-        core.setFailed(
-          `One of your files includes a space. Consider using a different output format or removing spaces from your filenames. ` +
-            "Please submit an issue on this action's GitHub repo."
-        )
-      }
       all.push(filename)
       switch (file.status as FileStatus) {
         case 'added':
@@ -114,7 +106,11 @@ async function run(): Promise<void> {
           removed.push(filename)
           break
         case 'renamed':
-          renamed.push(filename)
+          renamed.push({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            previousName: (file as any).previous_filename,
+            currentName: filename
+          })
           break
         default:
           core.setFailed(
@@ -131,29 +127,6 @@ async function run(): Promise<void> {
       renamedFormatted: string,
       addedModifiedFormatted: string
     switch (format) {
-      case 'space-delimited':
-        // If any of the filenames have a space in them, then fail the step.
-        for (const file of all) {
-          if (file.includes(' '))
-            core.setFailed(
-              `One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`
-            )
-        }
-        allFormatted = all.join(' ')
-        addedFormatted = added.join(' ')
-        modifiedFormatted = modified.join(' ')
-        removedFormatted = removed.join(' ')
-        renamedFormatted = renamed.join(' ')
-        addedModifiedFormatted = addedModified.join(' ')
-        break
-      case 'csv':
-        allFormatted = all.join(',')
-        addedFormatted = added.join(',')
-        modifiedFormatted = modified.join(',')
-        removedFormatted = removed.join(',')
-        renamedFormatted = renamed.join(',')
-        addedModifiedFormatted = addedModified.join(',')
-        break
       case 'json':
         allFormatted = JSON.stringify(all)
         addedFormatted = JSON.stringify(added)

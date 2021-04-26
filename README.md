@@ -17,44 +17,14 @@ See [action.yml](action.yml)
 - uses: jitterbit/get-changed-files@v1
   with:
     # Format of the steps output context.
-    # Can be 'space-delimited', 'csv', or 'json'.
-    # Default: 'space-delimited'
+    # Can be 'json'.
+    # Default: 'json'
     format: ''
 ```
 
 # Scenarios
 
-- [Get all changed files as space-delimited](#get-all-changed-files-as-space-delimited)
-- [Get all added and modified files as CSV](#get-all-added-and-modified-files-as-csv)
 - [Get all removed files as JSON](#get-all-removed-files-as-json)
-
-## Get all changed files as space-delimited
-
-If there are any files with spaces in them, then this method won't work and the step will fail.
-Consider using one of the other formats if that's the case.
-
-```yaml
-- id: files
-  uses: jitterbit/get-changed-files@v1
-- run: |
-    for changed_file in ${{ steps.files.outputs.all }}; do
-      echo "Do something with this ${changed_file}."
-    done
-```
-
-## Get all added and modified files as CSV
-
-```yaml
-- id: files
-  uses: jitterbit/get-changed-files@v1
-  with:
-    format: 'csv'
-- run: |
-    mapfile -d ',' -t added_modified_files < <(printf '%s,' '${{ steps.files.outputs.added_modified }}')
-    for added_modified_file in "${added_modified_files[@]}"; do
-      echo "Do something with this ${added_modified_file}."
-    done
-```
 
 ## Get all removed files as JSON
 
