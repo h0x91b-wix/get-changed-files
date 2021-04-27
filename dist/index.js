@@ -3570,6 +3570,7 @@ function run() {
                 core.setFailed(`The head commit for this ${github_1.context.eventName} event is not ahead of the base commit. ` +
                     "Please submit an issue on this action's GitHub repo.");
             }
+            core.info(`response.data - ${JSON.stringify(response.data)}`);
             // Get the changed files from the response payload.
             const files = response.data.files;
             const all = [], added = [], modified = [], removed = [], renamed = [], addedModified = [];
