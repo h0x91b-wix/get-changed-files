@@ -82,6 +82,9 @@ async function run(): Promise<void> {
       )
     }
 
+    // eslint-disable-next-line no-console
+    console.log('response.data', response.data)
+
     // Get the changed files from the response payload.
     const files = response.data.files
     const all = [] as string[],
